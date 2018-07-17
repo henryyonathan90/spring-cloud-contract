@@ -1,5 +1,5 @@
 /*
- *  Copyright 2013-2017 the original author or authors.
+ *  Copyright 2013-2018 the original author or authors.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -25,6 +25,14 @@ import repackaged.nl.flotsam.xeger.Xeger
 
 import java.util.regex.Pattern
 
+/**
+ * Represents an output for messaging. Used for verifying
+ * the body and headers that are sent.
+ *
+ * @author Marcin Grzejszczak
+ * @author Tim Ysewyn
+ * @since 1.0.0
+ */
 @TypeChecked
 @EqualsAndHashCode
 @ToString(includePackage = false, includeNames = true)
@@ -80,12 +88,26 @@ class OutputMessage extends Common {
 		this.assertThat = new ExecutionProperty(assertThat)
 	}
 
-	DslProperty value(ServerDslProperty server) {
-		Object value = server.clientValue
-		if (server.clientValue instanceof Pattern) {
-			value = StringEscapeUtils.escapeJava(new Xeger(((Pattern)server.clientValue).pattern()).generate())
+	DslProperty value(ClientDslProperty clientDslProperty) {
+		Object clientValue = clientDslProperty.clientValue
+		// for the output messages ran via stub runner,
+		// entries have to have fixed values
+		if (clientDslProperty.clientValue instanceof Pattern) {
+			clientValue = StringEscapeUtils.escapeJava(new Xeger(((Pattern)clientDslProperty.clientValue).pattern()).generate())
 		}
-		return new DslProperty(value, server.serverValue)
+		return new DslProperty(clientValue, clientDslProperty.clientValue)
+	}
+
+	DslProperty $(ClientDslProperty client) {
+		return value(client)
+	}
+
+	DslProperty $(Pattern pattern) {
+		return value(client(pattern))
+	}
+
+	DslProperty $(OptionalProperty property) {
+		return value(client(property.optionalPatternValue()))
 	}
 
 	void testMatchers(@DelegatesTo(ResponseBodyMatchers) Closure closure) {

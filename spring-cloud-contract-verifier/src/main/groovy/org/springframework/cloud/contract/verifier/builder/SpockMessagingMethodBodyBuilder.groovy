@@ -35,6 +35,7 @@ import static org.apache.commons.text.StringEscapeUtils.escapeJava
 
 /**
  * @author Jakub Kubrynski, codearte.io
+ * @author Tim Ysewyn
  */
 @PackageScope
 @TypeChecked
@@ -79,7 +80,7 @@ class SpockMessagingMethodBodyBuilder extends MessagingMethodBodyBuilder {
 
 	@Override
 	protected void processHeaderElement(BlockBuilder blockBuilder, String property, ExecutionProperty exec) {
-		blockBuilder.addLine("${exec.insertValue("response.getHeader(\'$property\')?.toString()")}")
+		blockBuilder.addLine("response.getHeader('$property') == ${exec.insertValue("response.getHeader(\'$property\')?.toString()")}")
 	}
 
 	@Override
@@ -229,8 +230,8 @@ class SpockMessagingMethodBodyBuilder extends MessagingMethodBodyBuilder {
 	}
 
 	protected String convertHeaderComparison(Pattern headerValue) {
-		String converted = escapeJava(convertUnicodeEscapesIfRequired(headerValue.toString()))
-		return "==~ java.util.regex.Pattern.compile('$converted')"
+		String converted = escapeJava(convertUnicodeEscapesIfRequired(headerValue.pattern()))
+		return "==~ java.util.regex.Pattern.compile('${converted}')"
 	}
 
 	// #273 - should escape $ for Groovy since it will try to make it a GString
